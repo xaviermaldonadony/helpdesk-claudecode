@@ -8,3 +8,9 @@ dist/
 
 # Prisma generated client
 server/src/generated/
+
+#random
+prog.txt
+
+# Per-user Claude Code settings
+.claude/settings.local.json
