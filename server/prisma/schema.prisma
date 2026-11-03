@@ -1,0 +1,11 @@
+// Prisma schema for the helpdesk database.
+// Models are added per phase in IMPLEMENTATION_PLAN.md.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

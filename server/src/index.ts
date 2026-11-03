@@ -1,4 +1,15 @@
 import express, { type NextFunction, type Request, type Response } from 'express'
+import { prisma } from './db'
+
+// Fail fast if the database is unreachable.
+try {
+  await prisma.$queryRaw`SELECT 1`
+  console.log('Connected to PostgreSQL')
+} catch (err) {
+  console.error('Could not connect to PostgreSQL. Check DATABASE_URL in server/.env.', err)
+  await prisma.$disconnect()
+  process.exit(1)
+}
 
 const app = express()
 const port = Number(process.env.PORT) || 3000

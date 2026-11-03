@@ -22,7 +22,7 @@ Source of truth: `tech-stack.md`. Status below reflects what is installed today.
 - **Backend (in use):** Express 5 with TypeScript, run directly by Bun
 - **Frontend, planned:** Tailwind CSS, React Router
 - **Auth, planned:** database-backed sessions (Phase 2)
-- **Database, planned:** PostgreSQL with Prisma ORM (Phase 1 leftover, then Phase 3 onward)
+- **Database (in use):** PostgreSQL (local, database `helpdesk`) with Prisma 7 ORM and the `@prisma/adapter-pg` driver adapter. Models are added per phase.
 - **AI, planned:** Claude API (Anthropic) for ticket classification, summaries, and suggested replies (Phase 5)
 - **Email, planned:** SendGrid or Mailgun for inbound webhooks and outbound replies (Phase 6)
 - **Deployment, planned:** Docker, with a cloud provider such as AWS, Railway, or Fly.io (Phase 8)
