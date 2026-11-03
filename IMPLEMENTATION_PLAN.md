@@ -10,9 +10,9 @@
 ## Phase 2: Authentication
 
 - [ ] Create login page
-- [ ] Implement login API endpoint
-- [ ] Implement session-based authentication middleware
-- [ ] Implement logout API endpoint
+- [x] Implement login API endpoint (Better Auth `POST /api/auth/sign-in/email`; sign-up at `POST /api/auth/sign-up/email`)
+- [x] Implement session-based authentication middleware (`requireAuth` in `server/src/middleware/require-auth.ts`)
+- [x] Implement logout API endpoint (Better Auth `POST /api/auth/sign-out`)
 - [ ] Add route protection on the frontend (redirect to login if unauthenticated)
 
 ## Phase 3: User Management

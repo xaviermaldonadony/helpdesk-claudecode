@@ -1,5 +1,8 @@
 import express, { type NextFunction, type Request, type Response } from 'express'
+import { toNodeHandler } from 'better-auth/node'
 import { prisma } from './db'
+import { auth } from './auth'
+import { requireAuth } from './middleware/require-auth'
 
 // Fail fast if the database is unreachable.
 try {
@@ -14,10 +17,17 @@ try {
 const app = express()
 const port = Number(process.env.PORT) || 3000
 
+// Better Auth must be mounted before express.json() so it can read the raw request body.
+app.all('/api/auth/*splat', toNodeHandler(auth))
+
 app.use(express.json())
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+app.get('/api/me', requireAuth, (req: Request, res: Response) => {
+  res.json({ user: req.user, session: req.session })
 })
 
 // Unmatched API routes
