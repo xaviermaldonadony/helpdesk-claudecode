@@ -36,13 +36,16 @@ Run from the repo root unless noted:
 - `bun run typecheck`: type-check both packages
 - `bun run build`: build server and client
 - Single package: `bun run --filter helpdesk-server <script>` or `bun run --filter client <script>`
+- Seed the admin user: `cd server && bun x prisma db seed`. The command is set in `server/prisma.config.ts` (`migrations.seed`). It reads `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` from `server/.env` and is idempotent. Sign-up is disabled, so this is the only way to create the first user.
 
 ## Architecture
 
 - The server exposes all HTTP routes under `/api`. Current routes: `GET /api/health`, `GET /api/me` (requires a session), and the Better Auth handler at `/api/auth/*`.
 - Protect a route by adding `requireAuth` (`server/src/middleware/require-auth.ts`) before its handler. It returns 401 without a session and sets the typed `req.user` / `req.session` (augmentation in `server/src/types/express.d.ts`).
 - The Better Auth handler is mounted before `express.json()` in `server/src/index.ts`. Keep it that way.
-- Auth config lives in `server/src/auth.ts`. `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` are read from `server/.env`.
+- Auth config lives in `server/src/auth.ts`. `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` are read from `server/.env`. Email/password sign-up is disabled (`disableSignUp: true`).
+- Users have a `role` (`admin` or `agent`, default `agent`) on the Prisma `User` model and in the Better Auth user object. It is `input: false`, so clients cannot set it. Only the seed script or the server can change it.
+- Seed script: `server/prisma/seed.ts`. It writes the user and credential account directly with `hashPassword` from `better-auth/crypto`, because the sign-up route is disabled.
 - In development the client calls `/api/*` as a relative URL. Vite's `server.proxy` (`client/vite.config.ts`) forwards it to `http://localhost:3000`. Because of this the browser never makes a cross-origin request, so CORS is not configured.
 - Server entry point: `server/src/index.ts`. It registers JSON parsing, routes, a 404 handler for unmatched `/api` requests, and an error handler.
 
@@ -66,4 +69,4 @@ Library IDs already verified for this project:
 ## Current status
 
 - Phase 1 (project setup) is complete.
-- Phase 2 (Authentication) is in progress: Better Auth email/password sign-up, sign-in, sign-out, and database sessions are done. Remaining: login page, session middleware, frontend route protection.
+- Phase 2 (Authentication) is in progress: Better Auth email/password sign-in, sign-out, and database sessions are done. Sign-up is disabled, and an admin user is created with the seed script. Remaining: login page, session middleware, frontend route protection, role-based access control.
