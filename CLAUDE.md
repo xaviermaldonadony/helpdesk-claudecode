@@ -21,6 +21,7 @@ Source of truth: `tech-stack.md`. Status below reflects what is installed today.
 - **Frontend (in use):** React 19 with TypeScript, built and served by Vite 8 (`@vitejs/plugin-react`)
 - **Backend (in use):** Express 5 with TypeScript, run directly by Bun
 - **Frontend routing (in use):** React Router 8 in declarative mode (`BrowserRouter` in `client/src/main.tsx`, routes in `client/src/App.tsx`)
+- **Frontend forms (in use):** React Hook Form with zod 4 schemas through `@hookform/resolvers/zod` (login form in `client/src/pages/LoginPage.tsx`)
 - **Frontend, planned:** Tailwind CSS
 - **Auth (in use):** Better Auth with email/password and database-backed sessions (`server/src/auth.ts`, Prisma adapter). Login, sign-up, and logout are served by Better Auth under `/api/auth/*`. `requireAuth` middleware protects server routes. The client uses `authClient` (`client/src/lib/auth-client.ts`, `better-auth/react`): `RequireAuth` guards the app routes, `/login` is the sign-in page, and `NavBar` shows the user's name with sign-out.
 - **Database (in use):** PostgreSQL (local, database `helpdesk`) with Prisma 7 ORM and the `@prisma/adapter-pg` driver adapter. Models are added per phase.

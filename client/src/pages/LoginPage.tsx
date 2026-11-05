@@ -1,29 +1,40 @@
-import { useState, type FormEvent } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm, type SubmitHandler } from 'react-hook-form'
 import { Navigate, useNavigate } from 'react-router'
+import { z } from 'zod'
 import { signIn, useSession } from '../lib/auth-client'
+
+const loginSchema = z.object({
+  email: z.email({ error: 'Enter a valid email address' }),
+  password: z.string().min(1, { error: 'Password is required' }),
+})
+
+type LoginValues = z.infer<typeof loginSchema>
 
 export function LoginPage() {
   const { data: session, isPending: sessionPending } = useSession()
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  })
 
   if (sessionPending) return <p className="status">Loading…</p>
   if (session) return <Navigate to="/" replace />
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setSubmitting(true)
-    setError(null)
+  const onSubmit: SubmitHandler<LoginValues> = async (values) => {
+    const result = await signIn.email(values)
 
-    const result = await signIn.email({ email, password })
-
-    setSubmitting(false)
     if (result.error) {
-      setError(result.error.message ?? 'Sign in failed')
+      setError('root.serverError', {
+        message: result.error.message ?? 'Sign in failed',
+      })
       return
     }
     navigate('/', { replace: true })
@@ -31,37 +42,41 @@ export function LoginPage() {
 
   return (
     <main className="login-page">
-      <form className="login-card" onSubmit={handleSubmit}>
+      <form className="login-card" onSubmit={handleSubmit(onSubmit)} noValidate>
         <h1>Sign in to Helpdesk</h1>
 
         <label>
           Email
           <input
             type="email"
-            name="email"
             autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={errors.email ? true : undefined}
+            {...register('email')}
           />
         </label>
+        {errors.email && (
+          <p role="alert" className="form-error">{errors.email.message}</p>
+        )}
 
         <label>
           Password
           <input
             type="password"
-            name="password"
             autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={errors.password ? true : undefined}
+            {...register('password')}
           />
         </label>
+        {errors.password && (
+          <p role="alert" className="form-error">{errors.password.message}</p>
+        )}
 
-        {error && <p role="alert" className="form-error">{error}</p>}
+        {errors.root?.serverError && (
+          <p role="alert" className="form-error">{errors.root.serverError.message}</p>
+        )}
 
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Signing in…' : 'Sign in'}
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
     </main>
