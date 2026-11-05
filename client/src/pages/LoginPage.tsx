@@ -25,7 +25,7 @@ export function LoginPage() {
     defaultValues: { email: '', password: '' },
   })
 
-  if (sessionPending) return <p className="status">Loading…</p>
+  if (sessionPending) return <p className="p-8 text-center">Loading…</p>
   if (session) return <Navigate to="/" replace />
 
   const onSubmit: SubmitHandler<LoginValues> = async (values) => {
@@ -41,41 +41,51 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page">
-      <form className="login-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1>Sign in to Helpdesk</h1>
+    <main className="grid min-h-screen place-items-center p-4">
+      <form
+        className="flex w-full max-w-sm flex-col gap-4 rounded-lg border border-gray-300 p-8"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
+        <h1 className="text-xl font-semibold">Sign in to Helpdesk</h1>
 
-        <label>
+        <label className="flex flex-col gap-1">
           Email
           <input
             type="email"
             autoComplete="email"
             aria-invalid={errors.email ? true : undefined}
+            className="rounded border border-gray-400 p-2 aria-invalid:border-red-600"
             {...register('email')}
           />
         </label>
         {errors.email && (
-          <p role="alert" className="form-error">{errors.email.message}</p>
+          <p role="alert" className="m-0 text-red-600">{errors.email.message}</p>
         )}
 
-        <label>
+        <label className="flex flex-col gap-1">
           Password
           <input
             type="password"
             autoComplete="current-password"
             aria-invalid={errors.password ? true : undefined}
+            className="rounded border border-gray-400 p-2 aria-invalid:border-red-600"
             {...register('password')}
           />
         </label>
         {errors.password && (
-          <p role="alert" className="form-error">{errors.password.message}</p>
+          <p role="alert" className="m-0 text-red-600">{errors.password.message}</p>
         )}
 
         {errors.root?.serverError && (
-          <p role="alert" className="form-error">{errors.root.serverError.message}</p>
+          <p role="alert" className="m-0 text-red-600">{errors.root.serverError.message}</p>
         )}
 
-        <button type="submit" disabled={isSubmitting}>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="cursor-pointer rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-700 disabled:cursor-default disabled:opacity-60"
+        >
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
       </form>

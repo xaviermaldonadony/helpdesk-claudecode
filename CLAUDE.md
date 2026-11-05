@@ -22,7 +22,7 @@ Source of truth: `tech-stack.md`. Status below reflects what is installed today.
 - **Backend (in use):** Express 5 with TypeScript, run directly by Bun
 - **Frontend routing (in use):** React Router 8 in declarative mode (`BrowserRouter` in `client/src/main.tsx`, routes in `client/src/App.tsx`)
 - **Frontend forms (in use):** React Hook Form with zod 4 schemas through `@hookform/resolvers/zod` (login form in `client/src/pages/LoginPage.tsx`)
-- **Frontend, planned:** Tailwind CSS
+- **Frontend styling (in use):** Tailwind CSS v4 with `@tailwindcss/vite` (plugin in `client/vite.config.ts`, import in `client/src/index.css`). All styling is Tailwind utility classes; do not add custom CSS.
 - **Auth (in use):** Better Auth with email/password and database-backed sessions (`server/src/auth.ts`, Prisma adapter). Login, sign-up, and logout are served by Better Auth under `/api/auth/*`. `requireAuth` middleware protects server routes. The client uses `authClient` (`client/src/lib/auth-client.ts`, `better-auth/react`): `RequireAuth` guards the app routes, `/login` is the sign-in page, and `NavBar` shows the user's name with sign-out.
 - **Database (in use):** PostgreSQL (local, database `helpdesk`) with Prisma 7 ORM and the `@prisma/adapter-pg` driver adapter. Models are added per phase.
 - **AI, planned:** Claude API (Anthropic) for ticket classification, summaries, and suggested replies (Phase 5)
@@ -55,7 +55,7 @@ Run from the repo root unless noted:
 
 - TypeScript strict mode everywhere. Avoid `any`.
 - Server runs TypeScript directly with Bun. Do not add ts-node or nodemon.
-- Do not add Tailwind until the matching phase in `IMPLEMENTATION_PLAN.md` starts.
+- Style with Tailwind utility classes only. Do not write custom CSS or add CSS files beyond `client/src/index.css`, which only contains `@import "tailwindcss";`.
 - Client auth goes through `authClient` in `client/src/lib/auth-client.ts`. Do not call `/api/auth/*` with raw `fetch`.
 - Do not commit `.env` files or secrets. `.gitignore` excludes `.env*` except `.env.example`.
 
