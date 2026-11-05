@@ -20,8 +20,9 @@ Source of truth: `tech-stack.md`. Status below reflects what is installed today.
 - **Runtime and tooling (in use):** Bun 1.4 (runtime, package manager, workspaces), TypeScript 7 (strict), oxlint (client lint)
 - **Frontend (in use):** React 19 with TypeScript, built and served by Vite 8 (`@vitejs/plugin-react`)
 - **Backend (in use):** Express 5 with TypeScript, run directly by Bun
-- **Frontend, planned:** Tailwind CSS, React Router
-- **Auth (in use):** Better Auth with email/password and database-backed sessions (`server/src/auth.ts`, Prisma adapter). Login, sign-up, and logout are served by Better Auth under `/api/auth/*`. `requireAuth` middleware is available; the frontend route guard is not yet built.
+- **Frontend routing (in use):** React Router 8 in declarative mode (`BrowserRouter` in `client/src/main.tsx`, routes in `client/src/App.tsx`)
+- **Frontend, planned:** Tailwind CSS
+- **Auth (in use):** Better Auth with email/password and database-backed sessions (`server/src/auth.ts`, Prisma adapter). Login, sign-up, and logout are served by Better Auth under `/api/auth/*`. `requireAuth` middleware protects server routes. The client uses `authClient` (`client/src/lib/auth-client.ts`, `better-auth/react`): `RequireAuth` guards the app routes, `/login` is the sign-in page, and `NavBar` shows the user's name with sign-out.
 - **Database (in use):** PostgreSQL (local, database `helpdesk`) with Prisma 7 ORM and the `@prisma/adapter-pg` driver adapter. Models are added per phase.
 - **AI, planned:** Claude API (Anthropic) for ticket classification, summaries, and suggested replies (Phase 5)
 - **Email, planned:** SendGrid or Mailgun for inbound webhooks and outbound replies (Phase 6)
@@ -53,7 +54,8 @@ Run from the repo root unless noted:
 
 - TypeScript strict mode everywhere. Avoid `any`.
 - Server runs TypeScript directly with Bun. Do not add ts-node or nodemon.
-- Do not add Tailwind or React Router until the matching phase in `IMPLEMENTATION_PLAN.md` starts.
+- Do not add Tailwind until the matching phase in `IMPLEMENTATION_PLAN.md` starts.
+- Client auth goes through `authClient` in `client/src/lib/auth-client.ts`. Do not call `/api/auth/*` with raw `fetch`.
 - Do not commit `.env` files or secrets. `.gitignore` excludes `.env*` except `.env.example`.
 
 ## Documentation lookup (Context7)
@@ -69,4 +71,4 @@ Library IDs already verified for this project:
 ## Current status
 
 - Phase 1 (project setup) is complete.
-- Phase 2 (Authentication) is in progress: Better Auth email/password sign-in, sign-out, and database sessions are done. Sign-up is disabled, and an admin user is created with the seed script. Remaining: login page, session middleware, frontend route protection, role-based access control.
+- Phase 2 (Authentication) is in progress: Better Auth email/password sign-in, sign-out, database sessions, the login page, and frontend route protection are done. Sign-up is disabled, and an admin user is created with the seed script. Remaining: role-based access control.

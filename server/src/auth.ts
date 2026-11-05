@@ -17,6 +17,18 @@ export const auth = betterAuth({
       },
     },
   },
-  // Vite dev server origin; requests reach the API through its proxy.
-  trustedOrigins: ['http://localhost:5173'],
+  trustedOrigins: trustedOrigins(),
 })
+
+// Comma-separated list, e.g. TRUSTED_ORIGINS="http://localhost:5173".
+function trustedOrigins(): string[] {
+  const origins = (process.env.TRUSTED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+
+  if (origins.length === 0) {
+    throw new Error('TRUSTED_ORIGINS must be set in server/.env')
+  }
+  return origins
+}
