@@ -51,6 +51,18 @@ Run from the repo root unless noted:
 - In development the client calls `/api/*` as a relative URL. Vite's `server.proxy` (`client/vite.config.ts`) forwards it to `http://localhost:3000`. Because of this the browser never makes a cross-origin request, so CORS is not configured.
 - Server entry point: `server/src/index.ts`. It registers JSON parsing, routes, a 404 handler for unmatched `/api` requests, and an error handler.
 
+## Authentication
+
+Better Auth handles sessions. The browser holds a cookie, and the server checks it on each request.
+
+- **Server env (`server/.env`):** `DATABASE_URL`, `BETTER_AUTH_SECRET` (random, from `openssl rand -base64 32`), `BETTER_AUTH_URL` (`http://localhost:3000`), `TRUSTED_ORIGINS` (comma-separated; must include `http://localhost:5173`), and `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` for the seed. `auth.ts` throws at startup if `TRUSTED_ORIGINS` is empty.
+- **Why `TRUSTED_ORIGINS` matters:** the browser sends `Origin: http://localhost:5173` through the Vite proxy. Better Auth rejects auth requests from origins it doesn't trust, so a missing entry breaks sign-in.
+- **Endpoints (served by Better Auth):** `POST /api/auth/sign-in/email`, `POST /api/auth/sign-out`, `GET /api/auth/get-session`. Sign-up is disabled (`disableSignUp: true`).
+- **Data model (Prisma):** `User` (with `role`), `Session` (token, expiry, user), `Account` (holds the password hash for `providerId: credential`), and `Verification`. Users are created only by the seed script.
+- **Server protection:** `requireAuth` calls `auth.api.getSession` with `fromNodeHeaders(req.headers)`. It returns 401 when there is no session, and otherwise sets `req.user` and `req.session` (typed in `server/src/types/express.d.ts`). Use `requireAuth` on every new `/api` route that needs a signed-in user.
+- **Client flow:** `LoginPage` calls `signIn.email` and shows the server's error message in an `Alert`. `RequireAuth` uses `useSession()` to show a spinner while the session loads, then redirects to `/login` if there is no session. `NavBar` calls `signOut()`.
+- **Roles:** `admin` and `agent`, default `agent`. Role checks are not implemented yet (Phase 3).
+
 ## Conventions
 
 - TypeScript strict mode everywhere. Avoid `any`.

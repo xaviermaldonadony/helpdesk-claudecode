@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { Button } from '@/components/ui/button'
 import { signOut, useSession } from '../lib/auth-client'
 
 export function NavBar() {
@@ -18,14 +19,9 @@ export function NavBar() {
       <span className="font-bold">Helpdesk</span>
       <div className="flex items-center gap-4">
         {session && <span>{session.user.name}</span>}
-        <button
-          type="button"
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className="cursor-pointer rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-700 disabled:cursor-default disabled:opacity-60"
-        >
+        <Button type="button" onClick={handleSignOut} disabled={signingOut}>
           {signingOut ? 'Signing out…' : 'Sign out'}
-        </button>
+        </Button>
       </div>
     </nav>
   )
