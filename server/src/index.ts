@@ -27,7 +27,8 @@ app.get('/api/health', (_req: Request, res: Response) => {
 })
 
 app.get('/api/me', requireAuth, (req: Request, res: Response) => {
-  res.json({ user: req.user, session: req.session })
+  // Do not return req.session: it contains the bearer session token.
+  res.json({ user: req.user })
 })
 
 // Unmatched API routes

@@ -7,10 +7,18 @@ export function NavBar() {
   const { data: session } = useSession()
   const navigate = useNavigate()
   const [signingOut, setSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState<string | null>(null)
 
   async function handleSignOut() {
     setSigningOut(true)
-    await signOut()
+    setSignOutError(null)
+    const result = await signOut()
+    if (result.error) {
+      // The server session may still be valid, so do not show the login page.
+      setSignOutError(result.error.message ?? 'Sign out failed. Please try again.')
+      setSigningOut(false)
+      return
+    }
     navigate('/login', { replace: true })
   }
 
@@ -32,6 +40,7 @@ export function NavBar() {
         <Button type="button" onClick={handleSignOut} disabled={signingOut}>
           {signingOut ? 'Signing out…' : 'Sign out'}
         </Button>
+        {signOutError && <span className="text-sm text-red-600">{signOutError}</span>}
       </div>
     </nav>
   )

@@ -44,6 +44,7 @@ Run from the repo root unless noted:
 
 - The server exposes all HTTP routes under `/api`. Current routes: `GET /api/health`, `GET /api/me` (requires a session), and the Better Auth handler at `/api/auth/*`.
 - Protect a route by adding `requireAuth` (`server/src/middleware/require-auth.ts`) before its handler. It returns 401 without a session and sets the typed `req.user` / `req.session` (augmentation in `server/src/types/express.d.ts`).
+- Protect an admin-only route with `requireAdmin` (`server/src/middleware/require-admin.ts`) after `requireAuth`, e.g. `app.get('/api/users', requireAuth, requireAdmin, handler)`. It returns 401 without a user and 403 when the user is not an admin. Every admin route must use it.
 - The Better Auth handler is mounted before `express.json()` in `server/src/index.ts`. Keep it that way.
 - Auth config lives in `server/src/auth.ts`. `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` are read from `server/.env`. Email/password sign-up is disabled (`disableSignUp: true`).
 - Users have a `role` (`admin` or `agent`, default `agent`) on the Prisma `User` model and in the Better Auth user object (`additionalFields.role` in `server/src/auth.ts`). It is `input: false`, so clients cannot set it. Only the seed script or the server can change it.
@@ -61,7 +62,7 @@ Better Auth handles sessions. The browser holds a cookie, and the server checks 
 - **Data model (Prisma):** `User` (with `role`), `Session` (token, expiry, user), `Account` (holds the password hash for `providerId: credential`), and `Verification`. Users are created only by the seed script.
 - **Server protection:** `requireAuth` calls `auth.api.getSession` with `fromNodeHeaders(req.headers)`. It returns 401 when there is no session, and otherwise sets `req.user` and `req.session` (typed in `server/src/types/express.d.ts`). Use `requireAuth` on every new `/api` route that needs a signed-in user.
 - **Client flow:** `LoginPage` calls `signIn.email` and shows the server's error message in an `Alert`. `RequireAuth` uses `useSession()` to show a spinner while the session loads, then redirects to `/login` if there is no session. `RequireAdmin` (nested inside `RequireAuth`) shows the same spinner while the session loads, then redirects non-admins to `/`. `NavBar` calls `signOut()`.
-- **Roles:** `admin` and `agent`, default `agent`. The only admin-only page so far is `/users` (`client/src/pages/UsersPage.tsx`, a placeholder heading). That check is client-side only. Server-side role checks are not implemented yet (Phase 3).
+- **Roles:** `admin` and `agent`, default `agent`. The only admin-only page so far is `/users` (`client/src/pages/UsersPage.tsx`, a placeholder heading). That check is client-side only. The server has `requireAdmin` for admin routes, but no admin API routes exist yet, so the middleware is not used yet (Phase 3).
 
 ## Conventions
 
