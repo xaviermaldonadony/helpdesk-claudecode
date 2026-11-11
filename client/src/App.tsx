@@ -1,8 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { AppLayout } from './components/AppLayout'
+import { RequireAdmin } from './components/RequireAdmin'
 import { RequireAuth } from './components/RequireAuth'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { UsersPage } from './pages/UsersPage'
 
 function App() {
   return (
@@ -12,6 +14,10 @@ function App() {
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
+
+          <Route element={<RequireAdmin />}>
+            <Route path="/users" element={<UsersPage />} />
+          </Route>
         </Route>
       </Route>
 
