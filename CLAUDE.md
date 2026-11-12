@@ -7,7 +7,7 @@ AI-powered ticket management system. Product scope: `project-scope.md`. Stack: `
 ```
 client/   React + TypeScript SPA (Vite 8)
 server/   Express 5 + TypeScript API (runs on Bun)
-e2e/      Playwright end-to-end tests and the test database setup
+e2e/      Playwright end-to-end tests (see .claude/agents/e2e-test-writer.md)
 ```
 
 - Bun workspaces are declared in the root `package.json` (`client`, `server`, `e2e`).
@@ -26,7 +26,6 @@ Source of truth: `tech-stack.md`. Status below reflects what is installed today.
 - **Frontend styling (in use):** Tailwind CSS v4 with `@tailwindcss/vite` (plugin in `client/vite.config.ts`, import in `client/src/index.css`). All styling is Tailwind utility classes; do not add custom CSS.
 - **Auth (in use):** Better Auth with email/password and database-backed sessions (`server/src/auth.ts`, Prisma adapter). Login, sign-up, and logout are served by Better Auth under `/api/auth/*`. `requireAuth` middleware protects server routes. The client uses `authClient` (`client/src/lib/auth-client.ts`, `better-auth/react`): `RequireAuth` guards the app routes, `RequireAdmin` guards admin-only routes, `/login` is the sign-in page, and `NavBar` shows the user's name, an admin-only "Users" link, and sign-out.
 - **Database (in use):** PostgreSQL (local, database `helpdesk`) with Prisma 7 ORM and the `@prisma/adapter-pg` driver adapter. Models are added per phase.
-- **End-to-end testing (set up, no tests yet):** Playwright (`@playwright/test`, Chromium only) in the `e2e/` workspace, against a separate database `helpdesk_test`. Config: `e2e/playwright.config.ts`.
 - **AI, planned:** Claude API (Anthropic) for ticket classification, summaries, and suggested replies (Phase 5)
 - **Email, planned:** SendGrid or Mailgun for inbound webhooks and outbound replies (Phase 6)
 - **Deployment, planned:** Docker, with a cloud provider such as AWS, Railway, or Fly.io (Phase 8)
@@ -41,8 +40,6 @@ Run from the repo root unless noted:
 - `bun run build`: build server and client
 - Single package: `bun run --filter helpdesk-server <script>` or `bun run --filter client <script>`
 - Seed the admin user: `cd server && bun x prisma db seed`. The command is set in `server/prisma.config.ts` (`migrations.seed`). It reads `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` from `server/.env` and is idempotent. Sign-up is disabled, so this is the only way to create the first user.
-- `bun run test:e2e`: run Playwright end-to-end tests (`test:e2e:ui` for UI mode). It starts the API on :3100 and the client on :5174, against the `helpdesk_test` database. `reuseExistingServer` is off, so a dev server on 3000/5173 is never used.
-- Test database: `E2E_DATABASE_URL` (default `postgresql://$USER@localhost:5432/helpdesk_test`). Each run creates it if missing, applies migrations, empties the tables, and seeds the test users (`admin@e2e.test`, `agent@e2e.test`, credentials in `e2e/env.ts`). Teardown empties the tables again. The schema is kept. `e2e/scripts/db.ts` refuses any database whose name does not end in `_test`, or that is `helpdesk`.
 
 ## Architecture
 
@@ -77,6 +74,12 @@ Better Auth handles sessions. The browser holds a cookie, and the server checks 
 - Client auth goes through `authClient` in `client/src/lib/auth-client.ts`. Do not call `/api/auth/*` with raw `fetch`.
 - Do not commit `.env` files or secrets. `.gitignore` excludes `.env*` except `.env.example`.
 
+## Testing (e2e)
+
+- Write new Playwright tests with the `e2e-test-writer` agent (`.claude/agents/e2e-test-writer.md`). Name the feature or user flow to cover, and the role (`admin` or `agent`) if it matters. The agent reads the existing setup, writes specs in `e2e/tests/`, and runs them until they pass.
+- The agent edits only `e2e/`, does not commit, and does not start or stop servers.
+- Run the suite with `bun run test:e2e` from the repo root. Check the result yourself before calling a test passing.
+
 ## Documentation lookup (Context7)
 
 Always fetch current library documentation with the Context7 MCP tools (`resolve-library-id` then `query-docs`) before writing or changing code that depends on a library, framework, or CLI. This applies even to well-known tools, because training data can be out of date. Do not use Context7 for pure logic or for code that uses no library APIs.
@@ -87,7 +90,6 @@ Library IDs already verified for this project:
 - Express: `/expressjs/express` (v5.x)
 - Vite: `/vitejs/vite` (v8.x)
 - Better Auth: `/better-auth/better-auth` (type inference, additional fields, `strict` requirement)
-- Playwright: `/microsoft/playwright` (`webServer` array, `globalTeardown`, `reuseExistingServer`)
 
 ## Current status
 
