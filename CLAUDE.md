@@ -7,10 +7,11 @@ AI-powered ticket management system. Product scope: `project-scope.md`. Stack: `
 ```
 client/   React + TypeScript SPA (Vite 8)
 server/   Express 5 + TypeScript API (runs on Bun)
+e2e/      Playwright end-to-end tests and the test database setup
 ```
 
-- Bun workspaces are declared in the root `package.json` (`client`, `server`).
-- Workspace package names: `client` and `helpdesk-server`.
+- Bun workspaces are declared in the root `package.json` (`client`, `server`, `e2e`).
+- Workspace package names: `client`, `helpdesk-server`, and `e2e`.
 - Shared TS settings: `tsconfig.base.json`. The server extends it. The client has its own `client/tsconfig.app.json` and does not extend the base.
 
 ## Tech stack
@@ -25,6 +26,7 @@ Source of truth: `tech-stack.md`. Status below reflects what is installed today.
 - **Frontend styling (in use):** Tailwind CSS v4 with `@tailwindcss/vite` (plugin in `client/vite.config.ts`, import in `client/src/index.css`). All styling is Tailwind utility classes; do not add custom CSS.
 - **Auth (in use):** Better Auth with email/password and database-backed sessions (`server/src/auth.ts`, Prisma adapter). Login, sign-up, and logout are served by Better Auth under `/api/auth/*`. `requireAuth` middleware protects server routes. The client uses `authClient` (`client/src/lib/auth-client.ts`, `better-auth/react`): `RequireAuth` guards the app routes, `RequireAdmin` guards admin-only routes, `/login` is the sign-in page, and `NavBar` shows the user's name, an admin-only "Users" link, and sign-out.
 - **Database (in use):** PostgreSQL (local, database `helpdesk`) with Prisma 7 ORM and the `@prisma/adapter-pg` driver adapter. Models are added per phase.
+- **End-to-end testing (set up, no tests yet):** Playwright (`@playwright/test`, Chromium only) in the `e2e/` workspace, against a separate database `helpdesk_test`. Config: `e2e/playwright.config.ts`.
 - **AI, planned:** Claude API (Anthropic) for ticket classification, summaries, and suggested replies (Phase 5)
 - **Email, planned:** SendGrid or Mailgun for inbound webhooks and outbound replies (Phase 6)
 - **Deployment, planned:** Docker, with a cloud provider such as AWS, Railway, or Fly.io (Phase 8)
@@ -39,6 +41,8 @@ Run from the repo root unless noted:
 - `bun run build`: build server and client
 - Single package: `bun run --filter helpdesk-server <script>` or `bun run --filter client <script>`
 - Seed the admin user: `cd server && bun x prisma db seed`. The command is set in `server/prisma.config.ts` (`migrations.seed`). It reads `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` from `server/.env` and is idempotent. Sign-up is disabled, so this is the only way to create the first user.
+- `bun run test:e2e`: run Playwright end-to-end tests (`test:e2e:ui` for UI mode). It starts the API on :3100 and the client on :5174, against the `helpdesk_test` database. `reuseExistingServer` is off, so a dev server on 3000/5173 is never used.
+- Test database: `E2E_DATABASE_URL` (default `postgresql://$USER@localhost:5432/helpdesk_test`). Each run creates it if missing, applies migrations, empties the tables, and seeds the test users (`admin@e2e.test`, `agent@e2e.test`, credentials in `e2e/env.ts`). Teardown empties the tables again. The schema is kept. `e2e/scripts/db.ts` refuses any database whose name does not end in `_test`, or that is `helpdesk`.
 
 ## Architecture
 
@@ -62,6 +66,7 @@ Better Auth handles sessions. The browser holds a cookie, and the server checks 
 - **Data model (Prisma):** `User` (with `role`), `Session` (token, expiry, user), `Account` (holds the password hash for `providerId: credential`), and `Verification`. Users are created only by the seed script.
 - **Server protection:** `requireAuth` calls `auth.api.getSession` with `fromNodeHeaders(req.headers)`. It returns 401 when there is no session, and otherwise sets `req.user` and `req.session` (typed in `server/src/types/express.d.ts`). Use `requireAuth` on every new `/api` route that needs a signed-in user.
 - **Client flow:** `LoginPage` calls `signIn.email` and shows the server's error message in an `Alert`. `RequireAuth` uses `useSession()` to show a spinner while the session loads, then redirects to `/login` if there is no session. `RequireAdmin` (nested inside `RequireAuth`) shows the same spinner while the session loads, then redirects non-admins to `/`. `NavBar` calls `signOut()`.
+- **Rate limiting:** Better Auth limits requests on the server (`rateLimit` in `server/src/auth.ts`, 10 sign-in attempts per 60s). It is on only when `NODE_ENV` is `production`. Dev and the e2e run (`NODE_ENV: 'test'` in `e2e/playwright.config.ts`) are not limited. Production must set `NODE_ENV=production`.
 - **Roles:** `admin` and `agent`, default `agent`. The only admin-only page so far is `/users` (`client/src/pages/UsersPage.tsx`, a placeholder heading). That check is client-side only. The server has `requireAdmin` for admin routes, but no admin API routes exist yet, so the middleware is not used yet (Phase 3).
 
 ## Conventions
@@ -82,6 +87,7 @@ Library IDs already verified for this project:
 - Express: `/expressjs/express` (v5.x)
 - Vite: `/vitejs/vite` (v8.x)
 - Better Auth: `/better-auth/better-auth` (type inference, additional fields, `strict` requirement)
+- Playwright: `/microsoft/playwright` (`webServer` array, `globalTeardown`, `reuseExistingServer`)
 
 ## Current status
 

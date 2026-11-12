@@ -24,10 +24,12 @@ export const auth = betterAuth({
   baseURL,
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: { enabled: true, disableSignUp: true },
+  // Limits apply only when NODE_ENV is "production". Dev and the e2e run leave it unset
+  // or set it to "test", so tests don't hit the limit.
   // Stored in memory, so limits are per server instance. Use storage: 'database'
   // when running more than one instance.
   rateLimit: {
-    enabled: true,
+    enabled: process.env.NODE_ENV === 'production',
     window: 60,
     max: 100,
     customRules: {

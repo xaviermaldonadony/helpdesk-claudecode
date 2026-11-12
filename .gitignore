@@ -9,6 +9,12 @@ dist/
 # Prisma generated client
 server/src/generated/
 
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+e2e/.cache/
+
 #random
 prog.txt
 
